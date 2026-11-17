@@ -499,6 +499,7 @@ public class MineLightsClient implements ClientModInitializer {
         }
         Thread lightingThread = lightingManagerThread;
         if (lightingThread != null) {
+            if (lightingManager != null) lightingManager.requestExitStop();
             lightingThread.interrupt();
             // The JVM halts as soon as shutdown hooks return and the lighting thread is a daemon,
             // so wait for it to hand devices back (OpenRGB modes, outside-world profile).

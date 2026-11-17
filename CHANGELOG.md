@@ -1,6 +1,7 @@
 # Unreleased
 
 - Fixed devices not going back to their own lighting after closing Minecraft. MineLights now waits up to 3 seconds at exit for OpenRGB devices to be restored, instead of letting the game close in the middle of it. This mostly affected Linux and OpenRGB setups, such as fans on a Corsair Lighting Node, and also lets MineLights Server connections close cleanly.
+- Closing Minecraft now always puts OpenRGB devices back to the lighting they had before MineLights took them over, even when Restore Lighting Outside Worlds is off.
 
 # MineLights 2.4.1
 ## Changes

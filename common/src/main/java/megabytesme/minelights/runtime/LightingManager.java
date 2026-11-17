@@ -41,6 +41,7 @@ public class LightingManager implements Runnable {
     private volatile boolean isInitialized = false;
     private final AtomicBoolean stopping = new AtomicBoolean(false);
     private final AtomicBoolean refreshStopRequested = new AtomicBoolean(false);
+    private final AtomicBoolean exitStopRequested = new AtomicBoolean(false);
     private final AtomicBoolean openRgbDataChanged = new AtomicBoolean(false);
     private FrameStateDto lastSentFrame = null;
     private int initializedOpenRgbControllerCount;
@@ -71,6 +72,12 @@ public class LightingManager implements Runnable {
 
     public void requestRefreshStop() {
         refreshStopRequested.set(true);
+        stopping.set(true);
+    }
+
+    /** The game is closing: put every device back to the lighting it had before MineLights took it over. */
+    public void requestExitStop() {
+        exitStopRequested.set(true);
         stopping.set(true);
     }
 
@@ -540,7 +547,10 @@ public class LightingManager implements Runnable {
             boolean refreshing = refreshStopRequested.get();
             boolean restoreOutsideWorld = MineLightsClient.CONFIG != null
                     && MineLightsClient.CONFIG.restoreLightingOutsideWorld;
-            if (refreshing || restoreOutsideWorld) {
+            if (exitStopRequested.get() && !refreshing) {
+                // Always hand devices back when the game closes, even if lighting stays on outside worlds.
+                releaseOpenRgbDevices(restoreOutsideWorld);
+            } else if (refreshing || restoreOutsideWorld) {
                 releaseOpenRgbDevices(!refreshing && restoreOutsideWorld);
             }
             synchronized (openRgbControllers) {
