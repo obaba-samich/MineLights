@@ -267,6 +267,7 @@ public class MineLightsClient {
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static final AtomicBoolean shutdownHookRegistered = new AtomicBoolean(false);
     private static final AtomicBoolean shutdownStarted = new AtomicBoolean(false);
+    private static final long SHUTDOWN_RESTORE_TIMEOUT_MS = 3000;
 
     private static final AtomicBoolean lightingInitialized = new AtomicBoolean(false);
     private static volatile boolean waitForInitialClientTickBeforeLighting;
@@ -436,8 +437,22 @@ public class MineLightsClient {
             LOGGER.info("accepted".equals(result) ? "MineLights Server accepted the shutdown request." :
                     "MineLights Server remains running (other clients may be connected or the server does not support safe shutdown).");
         }
-        if (lightingManagerThread != null)
-            lightingManagerThread.interrupt();
+        Thread lightingThread = lightingManagerThread;
+        if (lightingThread != null) {
+            lightingThread.interrupt();
+            // The JVM halts as soon as shutdown hooks return and the lighting thread is a daemon,
+            // so wait for it to hand devices back (OpenRGB modes, outside-world profile).
+            if (lightingThread != Thread.currentThread()) {
+                try {
+                    lightingThread.join(SHUTDOWN_RESTORE_TIMEOUT_MS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                if (lightingThread.isAlive()) {
+                    LOGGER.warn("MineLights lighting did not finish restoring devices before exit.");
+                }
+            }
+        }
         if (serverMonitorThread != null)
             serverMonitorThread.interrupt();
         serverProcess = null;

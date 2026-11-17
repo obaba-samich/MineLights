@@ -1,3 +1,7 @@
+# Unreleased
+
+- Fixed devices not going back to their own lighting after closing Minecraft. MineLights now waits up to 3 seconds at exit for OpenRGB devices to be restored, instead of letting the game close in the middle of it. This mostly affected Linux and OpenRGB setups, such as fans on a Corsair Lighting Node, and also lets MineLights Server connections close cleanly.
+
 # MineLights 2.4.1
 ## Changes
 - Choose a fallback target for the keyboard compass: world spawn (default), 0, 0, or player spawn. Player spawn uses your bed or respawn anchor in singleplayer on Fabric and Quilt 1.16+, Forge 1.17+, and NeoForge. Multiplayer, Horizon and older versions use world spawn when it is available. A known player spawn in another dimension has no target.
